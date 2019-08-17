@@ -1,0 +1,20 @@
+{
+  "name": "parcel-plugin-google-fonts",
+  "version": "0.0.1",
+  "description": "Automagically rehost google fonts by bundeling them into your application",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "mocha test/*.js"
+  },
+  "keywords": [
+    "parcel",
+    "plugin",
+    "google",
+    "fonts"
+  ],
+  "author": "Maciej Krüger <mkg20001@gmail.com>",
+  "license": "MPL-2.0",
+  "devDependencies": {
+    "mocha": "^6.2.0"
+  }
+}
