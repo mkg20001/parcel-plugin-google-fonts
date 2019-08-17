@@ -4,16 +4,17 @@ Automagically rehost google fonts by bundeling them into your application
 
 # What it does
 
-It turns this
+Basically it takes google fonts urls like these
 
 ```html
 <link href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 ```
 
-into this
+And downloads them into a local cache while replacing them during the build process
 
-```html
-```
+# "This doesn't work. .addAssetMiddleware is not a function!"
 
-(Basically it downloads everything and caches it)
+This is part of an endeavour to bring middlewares to parcel: https://github.com/parcel-bundler/parcel/pull/3428
+
+Comment at the PR to get it implemented quicker! :smile:
