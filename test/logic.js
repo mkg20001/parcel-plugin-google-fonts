@@ -18,7 +18,7 @@ const logic = require('../src/logic')
 
 describe('logic.js processes html page correctly', () => {
   it('works', async () => {
-    const out = await logic(testPage, cachePath, globalAssetsStore)
+    const out = await logic(testPage, os.tmpdir(), cachePath, globalAssetsStore)
 
     console.log('%o', {out, globalAssetsStore})
   })

@@ -8,7 +8,7 @@ async function downloadMatch (match, cachePath, globalAssetsStore, justFetch) {
   let data
   let p = path.join(cachePath, match.filename)
 
-  if (globalAssetsStore[match.filename]) {
+  if (globalAssetsStore[match.filename] || fs.existsSync(p)) {
     if (!justFetch) {
       data = fs.readFileSync(p)
     }
@@ -16,9 +16,9 @@ async function downloadMatch (match, cachePath, globalAssetsStore, justFetch) {
     data = await downloadFile(match.url)
 
     fs.writeFileSync(p, data)
-
-    globalAssetsStore[match.filename] = p
   }
+
+  globalAssetsStore[match.filename] = p
 
   return {data, path: p}
 }
@@ -37,7 +37,7 @@ function postProcess (origPath, cachePath, globalAssetsStore, doProcess) {
   return {path: outPath}
 }
 
-async function googleFontsTree (html, cachePath, globalAssetsStore) {
+async function googleFontsTree (html, assetDir, cachePath, globalAssetsStore) {
   const matches = findMatches(html)
 
   let replace = {}
@@ -80,19 +80,18 @@ async function googleFontsTree (html, cachePath, globalAssetsStore) {
 
   for (i = 0; i < fileMatches.length; i++) {
     let match = fileMatches[i]
-    const {path} = await downloadMatch(match, cachePath, globalAssetsStore, true) // download fonts
+    const {path: p} = await downloadMatch(match, cachePath, globalAssetsStore, true) // download fonts
 
-    replace[match.match] = path
+    replace[match.match] = './' + path.relative(assetDir, p)
   }
 
   await Promise.all(cssFiles.map(async (match) => {
-    const {path} = await postProcess(match.path, cachePath, globalAssetsStore, (contents) => {
+    const {path: p} = await postProcess(match.path, cachePath, globalAssetsStore, (contents) => {
       return Buffer.from(String(contents).replace(regexFiles, (match) => replace[match]))
     })
 
-    match.path = path
-
-    replace[match.match] = path
+    match.path = p
+    replace[match.match] = './' + path.relative(assetDir, p)
   }))
 
   assets.forEach(asset => {
