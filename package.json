@@ -16,5 +16,17 @@
   "license": "MPL-2.0",
   "devDependencies": {
     "mocha": "^6.2.0"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mkg20001/parcel-plugin-google-fonts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mkg20001/parcel-plugin-google-fonts/issues"
+  },
+  "homepage": "https://github.com/mkg20001/parcel-plugin-google-fonts#readme"
 }
