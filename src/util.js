@@ -3,13 +3,13 @@
 const crypto = require('crypto')
 const https = require('https')
 const shortHash = (str) => {
-  let hash = crypto.createHash('sha256').update(str).digest('hex').substr()
-  let offset = Math.max(hash[6], 16)
+  let hash = crypto.createHash('sha256').update(str).digest('hex')
+  let offset = parseInt(hash[6], 16)
   return hash.substr(offset, offset + 6)
 }
 const prom = (fnc) => new Promise((resolve, reject) => fnc((err, res) => err ? reject(err) : resolve(res)))
 
-const regex = /(https?:)?(\/\/)?(fonts\.googleapis\.com\/(css|icon)\?family=([A-Za-z0-9:,&;=]+))/gmi
+const regex = /(https?:)?(\/\/)?(fonts\.googleapis\.com\/(css|icon)\?family=([A-Za-z0-9+:,&;=]+))/gmi
 const regexFiles = /http[s]*:\/\/(([a-z0-9_./A-Z-]+)\/([a-z0-9_./A-Z-]+))/gmi
 
 const debug = require('debug')
@@ -29,8 +29,6 @@ function regexIterate (regex, str, iterator) {
 module.exports = {
   regex,
   findMatches: (string) => regexIterate(regex, string, (res) => {
-    console.log(res)
-
     return {
       match: res[0],
       url: 'https://' + res[3],
@@ -38,8 +36,6 @@ module.exports = {
     }
   }),
   findFileMatches: (string) => regexIterate(regexFiles, string, (res) => {
-    console.log(res)
-
     return {
       match: res[0],
       url: 'https://' + res[1],
@@ -60,12 +56,16 @@ module.exports = {
 
         let res = await prom(cb => {
           https.get(url, (res) => {
+            if (res.statusCode !== 200) {
+              throw new Error(`Got ${res.statusCode} while downloading ${url}`)
+            }
+
             res.once('error', cb)
 
             let data = []
 
             res.on('data', (_data) => (data.push(_data)))
-            res.once('finish', () => cb(null, Buffer.concat(data)))
+            res.once('close', () => cb(null, Buffer.concat(data)))
           }).once('error', cb)
         })
 

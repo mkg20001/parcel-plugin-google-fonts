@@ -10,14 +10,14 @@ async function downloadMatch (match, cachePath, globalAssetsStore, justFetch) {
 
   if (globalAssetsStore[match.filename]) {
     if (!justFetch) {
-      data = fs.readFileSync(path)
+      data = fs.readFileSync(p)
     }
   } else {
     data = await downloadFile(match.url)
 
-    fs.writeFileSync(path, data)
+    fs.writeFileSync(p, data)
 
-    globalAssetsStore[match.filename] = path
+    globalAssetsStore[match.filename] = p
   }
 
   return {data, path: p}
@@ -46,7 +46,13 @@ async function googleFontsTree (html, cachePath, globalAssetsStore) {
   let cssFiles = []
   let assets = []
 
-  const fileMatches = (await Promise.all(matches.map(async (match) => {
+  let i
+
+  let fileMatches = []
+
+  for (i = 0; i < matches.length; i++) {
+    const match = matches[i]
+
     const {data, path} = await downloadMatch(match, cachePath, globalAssetsStore) // download css
 
     match.path = path
@@ -59,25 +65,25 @@ async function googleFontsTree (html, cachePath, globalAssetsStore) {
     }
     assets.push(asset)
 
-    const matches = findFileMatches(String(data))
+    const _fileMatches = findFileMatches(String(data))
 
-    matches.forEach(match => {
+    _fileMatches.forEach(el => {
       asset.subassets.push(match)
+
+      if (!_uniq[el.filename]) {
+        fileMatches.push(el)
+
+        _uniq[el.filename] = true
+      }
     })
+  }
 
-    return matches // find fonts in css
-  }))).reduce((a, b) => a.concat(b)).filter((el) => { // sort out non-unique
-    if (_uniq[el.filename]) { return false }
-
-    _uniq[el.filename] = true
-    return true
-  })
-
-  await Promise.all(fileMatches.map(async (match) => {
+  for (i = 0; i < fileMatches.length; i++) {
+    let match = fileMatches[i]
     const {path} = await downloadMatch(match, cachePath, globalAssetsStore, true) // download fonts
 
     replace[match.match] = path
-  }))
+  }
 
   await Promise.all(cssFiles.map(async (match) => {
     const {path} = await postProcess(match.path, cachePath, globalAssetsStore, (contents) => {
@@ -91,7 +97,7 @@ async function googleFontsTree (html, cachePath, globalAssetsStore) {
 
   assets.forEach(asset => {
     const {subassets} = asset
-    asset.subassets = subassets.map(({subasset}) => {
+    asset.subassets = subassets.map((subasset) => {
       return {
         type: path.parse(subasset.path).ext.substr(1),
         path: subasset.path
