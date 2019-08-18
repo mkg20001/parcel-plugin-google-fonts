@@ -1,6 +1,6 @@
 {
   "name": "parcel-plugin-google-fonts",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Automagically rehost google fonts by bundeling them into your application",
   "main": "src/index.js",
   "scripts": {
