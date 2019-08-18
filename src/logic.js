@@ -2,7 +2,7 @@
 
 const fs = require('fs')
 const path = require('path')
-const {downloadFile, findMatches, findFileMatches, regex, regexFiles} = require('./util')
+const {downloadFile, findMatches, findFileMatches, regex, regexFiles, regexIterate} = require('./util')
 
 async function downloadMatch (match, cachePath, globalAssetsStore, justFetch) {
   let data
@@ -21,6 +21,27 @@ async function downloadMatch (match, cachePath, globalAssetsStore, justFetch) {
   globalAssetsStore[match.filename] = p
 
   return {data, path: p}
+}
+
+function safeReplace (str, regex, replace) {
+  let replaced = 0
+
+  let out = str.replace(regex, (match) => {
+    replaced++
+    let replaceWith = replace[match]
+
+    if (!replaceWith) {
+      throw new Error(`GFonts Internal Error: Could not remap ${JSON.stringify(match)}`)
+    }
+
+    return replaceWith
+  })
+
+  if (!replaced) {
+    throw new Error('GFonts Internal error: Replace did not successfully replace anything')
+  }
+
+  return out
 }
 
 function postProcess (origPath, cachePath, globalAssetsStore, doProcess) {
@@ -86,9 +107,8 @@ async function googleFontsTree (html, assetDir, cachePath, globalAssetsStore) {
   }
 
   await Promise.all(cssFiles.map(async (match) => {
-    const {path: p} = await postProcess(match.path, cachePath, globalAssetsStore, (contents) => {
-      return Buffer.from(String(contents).replace(regexFiles, (match) => replace[match]))
-    })
+    const {path: p} = await postProcess(match.path, cachePath, globalAssetsStore,
+      (contents) => safeReplace(String(contents), regexFiles, replace))
 
     match.path = p
     replace[match.match] = './' + path.relative(assetDir, p)
@@ -105,7 +125,7 @@ async function googleFontsTree (html, assetDir, cachePath, globalAssetsStore) {
   })
 
   return {
-    processedHtml: html.replace(regex, (match) => replace[match]),
+    processedHtml: safeReplace(html, regex, replace),
     assets
   }
 }

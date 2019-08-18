@@ -28,6 +28,7 @@ function regexIterate (regex, str, iterator) {
 
 module.exports = {
   regex,
+  regexFiles,
   findMatches: (string) => regexIterate(regex, string, (res) => {
     return {
       match: res[0],
