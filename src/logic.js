@@ -125,8 +125,9 @@ async function googleFontsTree (html, assetDir, cachePath, globalAssetsStore) {
   })
 
   return {
-    processedHtml: safeReplace(html, regex, replace),
-    assets
+    processedHtml: matches.length ? safeReplace(html, regex, replace) : html,
+    assets,
+    inUse: Boolean(matches.length)
   }
 }
 
